@@ -23,46 +23,45 @@ const YearScroll = () => {
       const firstRight = first.getBoundingClientRect().right;
       const shift = sectionRight - firstRight;
 
-      // Start 2017 aligned to right, WORK outside right
+      // Initial positions
       gsap.set(text, { x: shift });
-      gsap.set(work, { x: "100%" });
+      gsap.set(work, { x: "100%", scale: 1, y: 0 });
 
-      // Measure total width of the text container
       const textWidth = text.getBoundingClientRect().width;
-      const sectionWidth = sectionRef.current.getBoundingClientRect().width;
+      const moveDistance = textWidth + 100;
 
-      const moveDistance = textWidth + 100; // extra to make sure fully off screen
+      const sectionHeight = sectionRef.current.offsetHeight;
 
+      // Timeline for scroll interaction
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "+=2000",
+          end: "+=2500",
           scrub: true,
           pin: true,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      // Step 1: Move 2017 → center
-      tl.to(first, { x: 0, ease: "power1.out" }, 0);
+      // Step 1: Move 2017-2025 out
+      tl.to(text, { x: -moveDistance, ease: "none" }, 0);
 
-      // Step 2: Move 2017–2025 completely out to left
-      tl.to(
-        text,
-        { x: -moveDistance, ease: "none" },
-        0.2
-      );
+      // Step 2: Bring WORK to center
+      tl.to(work, { x: 0, ease: "power2.out" }, 0.3);
 
-      // Step 3: Slide in WORK from right to center
-      tl.to(work, { x: 0, ease: "power1.out" }, 0.5);
+      // Step 3: Fade out the bottom-right content
+      tl.to(content, { opacity: 0, ease: "power1.out" }, 0.3);
 
-      // Step 4: Fade out bottom-right content once WORK is centered
-      tl.to(
-        content,
-        { opacity: 0, ease: "power1.out" },
-        0.5
-      );
+      // Step 4: Shrink WORK in size and move it down gradually
+      tl.to(work, {
+        scale: 0.1,
+        y: sectionHeight / 2 - 50, // move down roughly to bottom
+        transformOrigin: "center center",
+        ease: "power2.out",
+      }, 0.7);
+
     }, sectionRef);
 
     return () => ctx.revert();
@@ -82,7 +81,11 @@ const YearScroll = () => {
         </span>
         <span className="px-10">-</span>
         <span className="px-10">2025</span>
-        <span ref={workRef} className="pr-10 pl-28">
+        <span
+          ref={workRef}
+          className="pr-10 pl-28"
+          style={{ display: "inline-block" }}
+        >
           WORK
         </span>
       </div>
